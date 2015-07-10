@@ -30,6 +30,7 @@ class SaltoRecorder():
         self.print_interface()
         self.setup_server()
 
+
     def close(self):
         self.server.close()
         self.writeFile.close()
@@ -51,15 +52,15 @@ class SaltoRecorder():
         self.writeFile.write(json.dumps(data) + '\n')
 
 
-suit = SaltoRecorder()
-suit.run()
+if __name__ == '__main__':
+    suit = SaltoRecorder()
+    suit.run()
 
-try :
-    while 1 :
-        time.sleep(1)
+    try :
+        while 1 :
+            time.sleep(1)
 
-except KeyboardInterrupt :
-    print("\nClosing Salto Recorder.")
-    suit.close()
-    #st.join()
-    print("Done")
+    except KeyboardInterrupt :
+        print("\nClosing Salto Recorder.")
+        suit.close()
+        print("Done")

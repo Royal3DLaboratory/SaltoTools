@@ -22,9 +22,10 @@ class SaltoPlayer():
                 oscmessage.append(msg)
                 self.client.send(oscmessage)
 
-if len(sys.argv) < 2:
-    print('Please supply filename')
-else:
-    filename = sys.argv[1]
-    sp = SaltoPlayer(filename)
-    sp.run()
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('Please supply filename')
+    else:
+        filename = sys.argv[1]
+        sp = SaltoPlayer(filename)
+        sp.run()
