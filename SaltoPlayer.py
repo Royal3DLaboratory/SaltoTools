@@ -17,9 +17,11 @@ class SaltoPlayer():
         print('Replaying recording ...')
         with open(self.filename, 'r') as thefile:
             for line in thefile:
-                msg = json.loads(line)
+                timedelta, msg = json.loads(line)
                 oscmessage = OSC.OSCMessage('/salto2/sensor')
                 oscmessage.append(msg)
+		#Sleep a little sleep
+		time.sleep(timedelta)
                 self.client.send(oscmessage)
 
 if __name__ == '__main__':
