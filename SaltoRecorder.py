@@ -12,11 +12,11 @@ class SaltoRecorder():
 
         self.is_receiving = False
 
-        datestr = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+        datestr = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
         self.writeFile = open(datestr + '.txt', 'w')
 
-	self.previous_time = 0
+        self.previous_time = 0
 
 
     def print_interface(self):
@@ -36,6 +36,7 @@ class SaltoRecorder():
     def close(self):
         self.server.close()
         self.writeFile.close()
+        print('Closing server')
 
 
     def setup_server(self):
@@ -50,17 +51,17 @@ class SaltoRecorder():
             print('Server is receiving data')
             print('Recording ... (Press Ctrl+C to stop)')
             self.is_receiving = True
-	    
 
-	if self.is_receiving:
-	    time_now = time.time()
+
+        if self.is_receiving:
+            time_now = time.time()
             if self.previous_time == 0:
                 time_delta = 0
-	    else:
-		time_delta = time_now - self.previous_time
+            else:
+                time_delta = time_now - self.previous_time
 
             to_dump = (time_delta, data)
-	    self.writeFile.write(json.dumps(to_dump) + '\n')
+            self.writeFile.write(json.dumps(to_dump) + '\n')
             self.previous_time = time_now
 
 
