@@ -1,21 +1,35 @@
 #!/usr/bin/python2
+
 from gi.repository import Gtk
-
-from lib.SaltoRecorder import SaltoRecorder
-
-from lib.SaltoPlayer import SaltoPlayer
-
 from time import sleep
 
+from lib.SaltoRecorder import SaltoRecorder
+from lib.SaltoPlayer import SaltoPlayer
 
-class MyWindow(Gtk.Window):
+
+class SaltoReplayWindow(Gtk.Window):
     def __init__(self):
+        Gtk.Window.__init__(self, title="SaltoTools Replay")
+
         self.saltoRecorder = SaltoRecorder()
+
+        self.sending_server_ip = '192.168.173.1'
+
+        self.listening_port = 14040
+        self.sending_port = 14050
 
         self.is_recording = False
         self.is_playing = False
 
-        Gtk.Window.__init__(self, title="SaltoTools Replay")
+        # Draw the GUI
+        self.draw_interface()
+
+
+    def draw_interface(self):
+        ''' Draw widget for our GUI
+
+        '''
+
         self.set_resizable(False)
 
         self.set_border_width(20)
@@ -64,16 +78,77 @@ class MyWindow(Gtk.Window):
         self.table.attach(self.check_passthrough, 0, 1, 2, 3)
         self.table.attach(self.actionButton, 1, 2, 2, 3)
 
-        '''
-        self.grid.add(self.countdown_label)
-        self.grid.attach_next_to(self.recordButton, self.countdown_label, Gtk.PositionType.BOTTOM, 1, 2)
-        self.grid.attach_next_to(self.playButton, self.recordButton, Gtk.PositionType.RIGHT, 1, 2)
-        self.grid.attach_next_to(self.check_passthrough, self.recordButton, Gtk.PositionType.BOTTOM, 1, 2)
-        self.grid.attach_next_to(self.actionButton, self.playButton, Gtk.PositionType.BOTTOM, 1, 2)
+
+    def action(self, widget):
+        # Pause for five seconds then continue
+        self.countdown(5)
+        # Make a server and a client and pass the data through!
+        self.action_client = SaltoPlayer(self.sending_server_ip, self.sending_port)
+
+
+    def record(self, widget):
+        if not self.is_recording:
+            self.countdown(5, label='Recording ...', label_color='#a20')
+            self.recordButton.set_image(self.stopImage)
+            self.saltoRecorder.run()
+            self.is_recording = True
+        else:
+            self.clear_message()
+            self.recordButton.set_image(self.recordImage)
+            self.saltoRecorder.close()
+            self.is_recording = False
+
+
+    def play(self, widget):
+        if not self.is_playing:
+            self.playButton.set_image(self.stopImage)
+            self.is_playing = True
+
+            filename = self.choose_file()
+
+            self.countdown(5, label="Playing")
+            self.saltoPlayer = SaltoPlayer(self.sending_server_ip, self.sending_port)
+            self.saltoPlayer.run(filename, self.rundoneCallback)
+
+        else : 
+            self.saltoPlayer.close()
+            self.is_playing = False
+            self.playButton.set_image(self.playImage)
+
+
+    def rundoneCallback(self):
+        self.saltoPlayer.close()
+        self.is_playing = False
+        self.playButton.set_image(self.playImage)
+        self.clear_message()
+
+
+    def quit(self, widget, stuff):
+        ''' Let's exit nicely
+
         '''
 
+        if self.is_recording:
+            self.saltoRecorder.close()
+
+        if self.is_playing:
+            self.saltoPlayer.close()
+
+        Gtk.main_quit()
+
+
+    ######################
+    #                    #
+    #  Helper Functions  #
+    #                    #
+    ######################
 
     def countdown(self, time, callback=None, label=None, label_color=None):
+        ''' Helper function to display a countdown
+            and call a function after the time has run out
+
+        '''
+
         for sec in range(time*10):
             remaining = time - (sec / 10)
 
@@ -96,75 +171,46 @@ class MyWindow(Gtk.Window):
         return True
 
 
-    def action(self, widget):
-        self.countdown(5, None)
-        # Make a server and a client and pass the data through!
-        self.action_client = SaltoPlayer('127.0.0.1', 14050)
+    def clear_message(self):
+        ''' Clear the message field
 
+        '''
 
-    def record(self, widget):
-        if not self.is_recording:
-            self.recordButton.set_image(self.stopImage)
-            self.saltoRecorder.run()
-            self.is_recording = True
-        else:
-            self.recordButton.set_image(self.recordImage)
-            self.saltoRecorder.close()
-            self.is_recording = False
+        self.countdown_label.set_markup('<span size="38000"> </span>')
 
-
-    def play(self, widget):
-        if not self.is_playing:
-            self.playButton.set_image(self.stopImage)
-            self.is_playing = True
-
-            filename = self.choose_file()
-
-            self.saltoPlayer = SaltoPlayer('127.0.0.1', 14050)
-            self.saltoPlayer.run(filename, self.rundoneCallback)
-
-        else : 
-            self.saltoPlayer.close()
-            self.is_playing = False
-            self.playButton.set_image(self.playImage)
-
-
-    def rundoneCallback(self):
-        self.saltoPlayer.close()
-        self.is_playing = False
-        self.playButton.set_image(self.playImage)
-
-
-    def quit(self, widget, stuff):
-        if self.is_recording:
-            self.saltoRecorder.close()
-
-        if self.is_playing:
-            self.saltoPlayer.close()
-        Gtk.main_quit()
 
     def choose_file(self):
+        ''' Helper function to display a file picker
+            and return a path
+
+        '''
+
         chooser_dialog = Gtk.FileChooserDialog(title="Open file"
-        ,action=Gtk.FileChooserAction.OPEN
-        ,buttons=["Open", Gtk.ResponseType.OK, "Cancel", Gtk.ResponseType.CANCEL]
-        )
-        chooser_dialog.set_modal(True)
+            ,action=Gtk.FileChooserAction.OPEN
+            ,buttons=["Open", Gtk.ResponseType.OK, "Cancel", Gtk.ResponseType.CANCEL] )
+
         tfilter = Gtk.FileFilter()
         tfilter.add_mime_type('text/plain')
         tfilter.add_pattern('*.txt')
         tfilter.set_name('Salto Recordings')
+
         chooser_dialog.add_filter(tfilter)
+
         response = chooser_dialog.run()
         filename = chooser_dialog.get_filename()
+
         chooser_dialog.hide() #destroy()
 
+        # Hack to make the dialog disappear
         while Gtk.events_pending():
             Gtk.main_iteration()
 
         return filename.decode('utf8')
 
 
-win = MyWindow()
-win.connect("delete-event", win.quit)
-win.show_all()
-Gtk.main()
+# Run the app
+if __name__ == '__main__':
+    win = SaltoReplayWindow()
+    win.connect("delete-event", win.quit)
+    win.show_all()
+    Gtk.main()

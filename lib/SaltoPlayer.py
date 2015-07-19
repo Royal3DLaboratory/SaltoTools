@@ -10,9 +10,14 @@ class SaltoPlayer():
         server.
     '''
 
-    def __init__(self, server_address, server_port):
+    def __init__(self, server_address, server_port, suit_id=None):
         self.server_address = server_address
         self.server_port = server_port
+
+        if suit_id :
+            self.suit_id = suit_id
+        else:
+            self.suit_id = 'salto2'
 
         self.client = OSC.OSCClient()
         self.client.connect((self.server_address, self.server_port))
@@ -22,7 +27,7 @@ class SaltoPlayer():
         with open(self.filename, 'r') as thefile:
             for line in thefile:
                 timedelta, msg = json.loads(line)
-                oscmessage = OSC.OSCMessage('/salto2/sensor')
+                oscmessage = OSC.OSCMessage('/' + self.suit_id + '/sensor')
                 oscmessage.append(msg)
 
                 #Sleep a little sleep
@@ -35,7 +40,7 @@ class SaltoPlayer():
 
 
     def passthrough(self, data):
-        oscmessage = OSC.OSCMessage('/salto2/sensor')
+        oscmessage = OSC.OSCMessage('/' + self.suit_id + '/sensor')
         oscmessage.append(data)
         self.client.send(oscmessage)
 
@@ -44,13 +49,14 @@ class SaltoPlayer():
         self.filename = filename
         self.rundoneCallback = callback
 
-        print('Replaying recording ...')
+        #print('Replaying recording ...')
         self.st = threading.Thread( target = self.run_thread )
         self.st.start()
 
 
     def close(self):
         pass
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
