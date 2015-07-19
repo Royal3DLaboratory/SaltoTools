@@ -3,7 +3,6 @@
 import threading, time, json, datetime
 import OSC
 
-# Setup
 
 class SaltoRecorder():
     def __init__(self):

@@ -5,6 +5,7 @@ import argparse
 import threading, time, json, datetime
 import OSC
 
+
 class SaltoPlayer():
     ''' Play Salto recordings and send the OSC data to a listening
         server.
