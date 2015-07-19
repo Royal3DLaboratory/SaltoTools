@@ -12,11 +12,9 @@ class SaltoRecorder():
 
         self.is_receiving = False
 
-        datestr = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-
-        self.writeFile = open(datestr + '.txt', 'w')
-
         self.previous_time = 0
+
+        self.should_record = False
 
 
     def print_interface(self):
@@ -27,9 +25,14 @@ class SaltoRecorder():
         print('Listening on port %d' % (self.bind_port,))
         print('Waiting ...')
 
+    def open_file(self):
+        datestr = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.writeFile = open('Recordings/' + datestr + '.txt', 'w')
+
 
     def run(self):
         self.print_interface()
+        self.open_file()
         self.setup_server()
 
 
@@ -46,6 +49,9 @@ class SaltoRecorder():
         self.st.start()
 
 
+    def set_passthrough_client(self, client):
+        self.passthrough_client = 
+
     def recorder_callback(self, addr, tags, data, client_address):
         if not self.is_receiving:
             print('Server is receiving data')
@@ -54,15 +60,21 @@ class SaltoRecorder():
 
 
         if self.is_receiving:
-            time_now = time.time()
-            if self.previous_time == 0:
-                time_delta = 0
-            else:
-                time_delta = time_now - self.previous_time
+            if self.should_record:
+                time_now = time.time()
+                if self.previous_time == 0:
+                    time_delta = 0
+                else:
+                    time_delta = time_now - self.previous_time
 
-            to_dump = (time_delta, data)
-            self.writeFile.write(json.dumps(to_dump) + '\n')
-            self.previous_time = time_now
+                to_dump = (time_delta, data)
+                self.writeFile.write(json.dumps(to_dump) + '\n')
+                self.previous_time = time_now
+
+            if self.passthrough:
+                # Send the data on though the pipes
+                pass
+
 
 
 if __name__ == '__main__':

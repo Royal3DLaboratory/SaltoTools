@@ -10,8 +10,7 @@ class SaltoPlayer():
         server.
     '''
 
-    def __init__(self, filename, server_address, server_port):
-        self.filename = filename
+    def __init__(self, server_address, server_port):
         self.server_address = server_address
         self.server_port = server_port
 
@@ -30,8 +29,21 @@ class SaltoPlayer():
                 time.sleep(timedelta)
                 self.client.send(oscmessage)
 
+            # Call the callback when done
+            if self.rundoneCallback:
+                self.rundoneCallback()
 
-    def run(self):
+
+    def passthrough(self, data):
+        oscmessage = OSC.OSCMessage('/salto2/sensor')
+        oscmessage.append(data)
+        self.client.send(oscmessage)
+
+
+    def run(self, filename, callback=None):
+        self.filename = filename
+        self.rundoneCallback = callback
+
         print('Replaying recording ...')
         self.st = threading.Thread( target = self.run_thread )
         self.st.start()
