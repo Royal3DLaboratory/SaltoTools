@@ -18,6 +18,8 @@ class SaltoRecorder():
 
         self.should_record = False
 
+        self.passthrough = False
+
 
     def print_interface(self):
         print('**********************')
@@ -35,7 +37,10 @@ class SaltoRecorder():
 
     def run(self):
         self.print_interface()
-        self.open_file()
+
+        if self.should_record:
+            self.open_file()
+
         self.setup_server()
 
 
@@ -52,14 +57,11 @@ class SaltoRecorder():
         self.st.start()
 
 
-    def set_passthrough_client(self, client):
-        self.passthrough_client = client
-
-
     def recorder_callback(self, addr, tags, data, client_address):
         if not self.is_receiving:
             print('Server is receiving data')
-            print('Recording ... (Press Ctrl+C to stop)')
+            if self.should_record:
+                print('Recording ... (Press Ctrl+C to stop)')
             self.is_receiving = True
 
 
@@ -77,7 +79,7 @@ class SaltoRecorder():
 
             if self.passthrough:
                 # Send the data on though the pipes
-                pass
+                self.passthrough_client.passthrough(data)
 
 
 if __name__ == '__main__':

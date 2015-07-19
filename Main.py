@@ -13,7 +13,7 @@ class SaltoReplayWindow(Gtk.Window):
 
         self.saltoRecorder = SaltoRecorder()
 
-        self.sending_server_ip = '192.168.173.1'
+        self.sending_server_ip = '127.0.0.1'
 
         self.listening_port = 14040
         self.sending_port = 14050
@@ -84,17 +84,23 @@ class SaltoReplayWindow(Gtk.Window):
         self.countdown(5)
         # Make a server and a client and pass the data through!
         self.action_client = SaltoPlayer(self.sending_server_ip, self.sending_port)
+        self.saltoRecorder.should_record = False
+        self.saltoRecorder.passthrough = True
+        self.saltoRecorder.passthrough_client = self.action_client
+        self.saltoRecorder.run()
 
 
     def record(self, widget):
         if not self.is_recording:
             self.countdown(5, label='Recording ...', label_color='#a20')
             self.recordButton.set_image(self.stopImage)
+            self.saltoRecorder.should_record = True
             self.saltoRecorder.run()
             self.is_recording = True
         else:
             self.clear_message()
             self.recordButton.set_image(self.recordImage)
+            self.saltoRecorder.should_record = False
             self.saltoRecorder.close()
             self.is_recording = False
 
